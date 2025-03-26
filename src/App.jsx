@@ -44,25 +44,29 @@ const tempWatchedData = [
 
 const average = (arr) => arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
+// Structural Component - Its only responsible for Layout - Non-reusable
 export default function App() {
+  const [movies, setMovies] = useState(tempMovieData);
   return (
     <>
-      <Navbar />
-      <Main />
+      <Navbar movies={movies} />
+      <Main movies={movies} />
     </>
   );
 }
 
-function Navbar() {
+// Structural Component
+function Navbar({ movies }) {
   return (
     <nav className="nav-bar">
       <Logo />
       <Search />
-      <NumResults />
+      <NumResults movies={movies} />
     </nav>
   );
 }
 
+// Presentational - Stateless Component - there is no state in this component - reusable
 function Logo() {
   return (
     <div className="logo">
@@ -71,30 +75,35 @@ function Logo() {
   );
 }
 
+// Statefull Component - It can be reusable
 function Search() {
   const [query, setQuery] = useState("");
 
   return <input className="search" type="text" placeholder="Search movies..." value={query} onChange={(e) => setQuery(e.target.value)} />;
 }
 
-function NumResults() {
+function NumResults({ movies }) {
   return (
     <p className="num-results">
-      Found <strong>X</strong> results
+      Found <strong>{movies.length}</strong> results
     </p>
   );
 }
 
-function Main() {
+function Main({ movies }) {
   return (
     <main className="main">
-      <ListBox />
+      <ListBox movies={movies} />
       <WatchedBox />
     </main>
   );
 }
 
-function ListBox() {
+// -------------------------------
+// Render Movie List - Left Side
+// -------------------------------
+
+function ListBox({ movies }) {
   const [isOpen1, setIsOpen1] = useState(true);
 
   return (
@@ -102,13 +111,13 @@ function ListBox() {
       <button className="btn-toggle" onClick={() => setIsOpen1((open) => !open)}>
         {isOpen1 ? "–" : "+"}
       </button>
-      {isOpen1 && <MovieList />}
+      {isOpen1 && <MovieList movies={movies} />}
     </div>
   );
 }
 
-function MovieList() {
-  const [movies, setMovies] = useState(tempMovieData);
+function MovieList({ movies }) {
+  // const [movies, setMovies] = useState(tempMovieData);
 
   return (
     <ul className="list">
@@ -133,6 +142,10 @@ function Movie({ movie }) {
     </li>
   );
 }
+
+// -------------------------------
+// Watched Movie List - Right Side
+// -------------------------------
 
 function WatchedBox() {
   const [watched, setWatched] = useState(tempWatchedData);
