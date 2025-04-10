@@ -48,31 +48,69 @@ const KEY = "5e93def5";
 
 // Structural Component - Its only responsible for Layout - Non-reusable
 export default function App() {
-  useEffect(function () {
-    async function fetchMovies() {
-      const res = await fetch(`https://www.omdbapi.com/?apikey=${KEY}&s=interstellar`);
-      const data = await res.json();
+  const [movies, setMovies] = useState([]);
+  const [watched, setWatched] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-      console.log(data);
-    }
+  const [query, setQuery] = useState("");
+  // const tempQuery = "interstellar";
 
-    fetchMovies();
-  }, []);
+  useEffect(
+    function () {
+      async function fetchMovies() {
+        try {
+          setIsLoading(true);
+          setError("");
 
-  const [movies, setMovies] = useState(tempMovieData);
-  const [watched, setWatched] = useState(tempWatchedData);
+          const res = await fetch(`https://www.omdbapi.com/?apikey=${KEY}&s=${query}`);
+
+          if (!res.ok) throw new Error("Something Went Wrong with Fetch Movies");
+
+          const data = await res.json();
+
+          if (data?.Response === "False") throw new Error("Movie Not Found");
+
+          console.log(data);
+
+          setMovies(data.Search);
+        } catch (error) {
+          console.error(error.message);
+          setError(error.message);
+        } finally {
+          setIsLoading(false);
+          // setError("");
+        }
+      }
+
+      if (query.length < 3) {
+        setMovies([]);
+        setError("");
+        return;
+      }
+
+      fetchMovies();
+    },
+    [query]
+  );
+
   return (
     <>
       {/* Component Composition */}
       <Navbar>
         <Logo />
-        <Search />
+        <Search query={query} setQuery={setQuery} />
         <NumResults movies={movies} />
       </Navbar>
 
       <Main>
         <Box>
-          <MovieList movies={movies} />
+          {/* {isLoading ? <Loader /> : <MovieList movies={movies} />}
+           */}
+
+          {isLoading && <Loader />}
+          {!isLoading && !error && <MovieList movies={movies} />}
+          {error && <ErrorMessage message={error} />}
         </Box>
 
         {/* <WatchedBox /> */}
@@ -82,6 +120,18 @@ export default function App() {
         </Box>
       </Main>
     </>
+  );
+}
+
+function Loader() {
+  return <p className="loader">Loading...</p>;
+}
+
+function ErrorMessage({ message }) {
+  return (
+    <p className="error">
+      <span>❌</span> {message}
+    </p>
   );
 }
 
@@ -100,9 +150,7 @@ function Logo() {
 }
 
 // Statefull Component - It can be reusable
-function Search() {
-  const [query, setQuery] = useState("");
-
+function Search({ query, setQuery }) {
   return <input className="search" type="text" placeholder="Search movies..." value={query} onChange={(e) => setQuery(e.target.value)} />;
 }
 
