@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const tempMovieData = [
   {
@@ -44,8 +44,21 @@ const tempWatchedData = [
 
 const average = (arr) => arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
+const KEY = "5e93def5";
+
 // Structural Component - Its only responsible for Layout - Non-reusable
 export default function App() {
+  useEffect(function () {
+    async function fetchMovies() {
+      const res = await fetch(`https://www.omdbapi.com/?apikey=${KEY}&s=interstellar`);
+      const data = await res.json();
+
+      console.log(data);
+    }
+
+    fetchMovies();
+  }, []);
+
   const [movies, setMovies] = useState(tempMovieData);
   const [watched, setWatched] = useState(tempWatchedData);
   return (

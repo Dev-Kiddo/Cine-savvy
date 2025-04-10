@@ -14,7 +14,7 @@ const starContainerStyle = {
 
 const textStyle = {
   lineHeight: "1",
-  margin: "0",
+  margin: "0", 
 };
 
 export default function StarRating({ maxRating = 5 }) {
