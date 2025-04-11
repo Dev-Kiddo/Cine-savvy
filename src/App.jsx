@@ -55,7 +55,7 @@ export default function App() {
   const [error, setError] = useState("");
   const [selectedId, setSelectedId] = useState(null);
 
-  const [query, setQuery] = useState("interstellar");
+  const [query, setQuery] = useState("");
 
   function handleSelectMovie(id) {
     setSelectedId((selectedId) => (selectedId === id ? null : id));
@@ -112,6 +112,8 @@ export default function App() {
         return;
       }
 
+      // if one movie is searched - again we search the old one opend needts to close. we here handleCloseMovie() called.
+      handleCloseMovie();
       fetchMovies();
 
       return function () {
@@ -134,7 +136,7 @@ export default function App() {
         <Box>
           {/* {isLoading ? <Loader /> : <MovieList movies={movies} />}
            */}
-
+          {!query && <div className="greeting-text">Ready to rate? Search for a movie above.</div>}
           {isLoading && <Loader />}
           {!isLoading && !error && <MovieList movies={movies} onSelectMovie={handleSelectMovie} />}
           {error && <ErrorMessage message={error} />}
@@ -297,6 +299,24 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
       };
     },
     [title]
+  );
+
+  useEffect(
+    function () {
+      function eventCallback(e) {
+        if (e.code === "Escape") {
+          onCloseMovie();
+          // console.log("closing");
+        }
+      }
+
+      document.addEventListener("keydown", eventCallback);
+
+      return function () {
+        document.removeEventListener("keydown", eventCallback);
+      };
+    },
+    [onCloseMovie]
   );
 
   return (
