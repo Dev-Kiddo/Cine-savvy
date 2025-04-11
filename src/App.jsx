@@ -136,7 +136,7 @@ export default function App() {
         <Box>
           {/* {isLoading ? <Loader /> : <MovieList movies={movies} />}
            */}
-          {!query && <div className="greeting-text">Ready to rate? Search for a movie above.</div>}
+          {!query && <div className="greeting-text ">Ready to rate? Search for a movie above.</div>}
           {isLoading && <Loader />}
           {!isLoading && !error && <MovieList movies={movies} onSelectMovie={handleSelectMovie} />}
           {error && <ErrorMessage message={error} />}
