@@ -75,12 +75,17 @@ export default function App() {
 
   useEffect(
     function () {
+      // to fix the race condition-trigger multiple API request - using native browser API - abort controller - used in cleanup function to fix
+      // This is actually a browser API
+      const controller = new AbortController();
+
       async function fetchMovies() {
         try {
           setIsLoading(true);
           setError("");
 
-          const res = await fetch(`https://www.omdbapi.com/?apikey=${KEY}&s=${query}`);
+          // so here we need to pass controller as second arguement in fetch.
+          const res = await fetch(`https://www.omdbapi.com/?apikey=${KEY}&s=${query}`, { signal: controller.signal });
 
           if (!res.ok) throw new Error("Something Went Wrong with Fetch Movies");
 
@@ -89,9 +94,12 @@ export default function App() {
           if (data?.Response === "False") throw new Error("Movie Not Found");
 
           setMovies(data.Search);
+          setError("");
         } catch (error) {
-          console.error(error.message);
-          setError(error.message);
+          if (error.name !== "AbortError") {
+            console.error(error.message);
+            setError(error.message);
+          }
         } finally {
           setIsLoading(false);
           // setError("");
@@ -105,6 +113,10 @@ export default function App() {
       }
 
       fetchMovies();
+
+      return function () {
+        controller.abort();
+      };
     },
     [query]
   );
