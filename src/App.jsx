@@ -141,7 +141,6 @@ export default function App() {
           {!isLoading && !error && <MovieList movies={movies} onSelectMovie={handleSelectMovie} />}
           {error && <ErrorMessage message={error} />}
         </Box>
-
         {/* <WatchedBox /> */}
         <Box>
           {selectedId ? (
@@ -154,6 +153,7 @@ export default function App() {
           )}
         </Box>
       </Main>
+        <Footer />
     </>
   );
 }
@@ -441,4 +441,8 @@ function WatchedMovie({ movie, onDeleteWatched }) {
       </div>
     </li>
   );
+}
+
+function Footer() {
+  return <footer><a href="https://prasanthx.com">Prasanth S</a> | 2025</footer>;
 }
