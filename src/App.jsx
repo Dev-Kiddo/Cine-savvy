@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import StarRating from "./StarRating";
 
 const average = (arr) => arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
@@ -162,7 +162,40 @@ function Logo() {
 
 // Statefull Component - It can be reusable
 function Search({ query, setQuery }) {
-  return <input className="search" type="text" placeholder="Search movies..." value={query} onChange={(e) => setQuery(e.target.value)} />;
+  // Automatic focus input when the component mount: using event Listner
+  // useEffect(function () {
+  //   const el = document.querySelector(".search");
+  //   console.log(el);
+  //   el.focus();
+  // }, []);
+
+  // Automatic focus input when the component mount: using useRef();
+  // Using ref with DOm invlove 3steps:
+  // Create ref, use that ref in jsx using ref attribute, we can use useEffectHook to use useRef.
+  const inputElement = useRef(null);
+
+  useEffect(
+    function () {
+      function callback(e) {
+        if (document.activeElement === inputElement.current) return;
+
+        if (e.code === "Enter") {
+          inputElement.current.focus();
+
+          setQuery("");
+        }
+      }
+
+      document.addEventListener("keypress", callback);
+
+      return () => {
+        document.addEventListener("keypress", callback);
+      };
+    },
+    [setQuery]
+  );
+
+  return <input ref={inputElement} className="search" type="text" placeholder="Search movies..." value={query} onChange={(e) => setQuery(e.target.value)} />;
 }
 
 function NumResults({ movies }) {
@@ -224,12 +257,11 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
   const [isLoading, setIsLoading] = useState(false);
   const [userRating, setUserRating] = useState("");
 
-  // Destructure the api datas - because its comes by default with cappitilize
-
   const isWatched = watched.map((movie) => movie.imdbID).includes(selectedId);
 
   const watchedUserRating = watched.find((movie) => movie.imdbID === selectedId)?.userRating;
 
+  // Destructure the api datas - because its comes by default with cappitilize
   const { Title: title, Year: year, Poster: poster, Runtime: runtime, imdbRating, Plot: plot, Released: released, Actors: actors, Director: director, Genre: genre } = movie;
 
   function handleAdd() {
