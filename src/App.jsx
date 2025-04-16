@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import StarRating from "./StarRating";
+import { useMovies } from "./useMovies";
+import { useLocalStorageState } from "./useLocalStorageState";
 
 const average = (arr) => arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
@@ -7,20 +9,24 @@ const KEY = "5e93def5";
 
 // Structural Component - Its only responsible for Layout - Non-reusable
 export default function App() {
-  const [movies, setMovies] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  // const [movies, setMovies] = useState([]);
+  // const [isLoading, setIsLoading] = useState(false);
+  // const [error, setError] = useState("");
   const [selectedId, setSelectedId] = useState(null);
 
   const [query, setQuery] = useState("");
 
+  const [watched, setWatched] = useLocalStorageState([], "watched");
+
   // const [watched, setWatched] = useState([]);
   // react useState hook accepts accepts a callback function.
   // and this function wont accept any arguements - if we add arguements it wont work.
-  const [watched, setWatched] = useState(function () {
-    const storedValue = localStorage.getItem("watched");
-    return JSON.parse(storedValue);
-  });
+  // const [watched, setWatched] = useState(function () {
+  //   const storedValue = localStorage.getItem("watched");
+  //   return JSON.parse(storedValue);
+  // });
+
+  const { movies, isLoading, error } = useMovies(query, handleCloseMovie);
 
   function handleSelectMovie(id) {
     setSelectedId((selectedId) => (selectedId === id ? null : id));
@@ -42,62 +48,62 @@ export default function App() {
   }
 
   // using effects to add the watched movie into local storage.
-  useEffect(
-    function () {
-      localStorage.setItem("watched", JSON.stringify(watched));
-    },
-    [watched]
-  );
+  // useEffect(
+  //   function () {
+  //     localStorage.setItem("watched", JSON.stringify(watched));
+  //   },
+  //   [watched]
+  // );
 
-  useEffect(
-    function () {
-      // to fix the race condition-trigger multiple API request - using native browser API - abort controller - used in cleanup function to fix
-      // This is actually a browser API
-      const controller = new AbortController();
+  // useEffect(
+  //   function () {
+  //     // to fix the race condition-trigger multiple API request - using native browser API - abort controller - used in cleanup function to fix
+  //     // This is actually a browser API
+  //     const controller = new AbortController();
 
-      async function fetchMovies() {
-        try {
-          setIsLoading(true);
-          setError("");
+  //     async function fetchMovies() {
+  //       try {
+  //         setIsLoading(true);
+  //         setError("");
 
-          // so here we need to pass controller as second arguement in fetch.
-          const res = await fetch(`https://www.omdbapi.com/?apikey=${KEY}&s=${query}`, { signal: controller.signal });
+  //         // so here we need to pass controller as second arguement in fetch.
+  //         const res = await fetch(`https://www.omdbapi.com/?apikey=${KEY}&s=${query}`, { signal: controller.signal });
 
-          if (!res.ok) throw new Error("Something Went Wrong with Fetch Movies");
+  //         if (!res.ok) throw new Error("Something Went Wrong with Fetch Movies");
 
-          const data = await res.json();
+  //         const data = await res.json();
 
-          if (data?.Response === "False") throw new Error("Movie Not Found");
+  //         if (data?.Response === "False") throw new Error("Movie Not Found");
 
-          setMovies(data.Search);
-          setError("");
-        } catch (error) {
-          if (error.name !== "AbortError") {
-            console.error(error.message);
-            setError(error.message);
-          }
-        } finally {
-          setIsLoading(false);
-          // setError("");
-        }
-      }
+  //         setMovies(data.Search);
+  //         setError("");
+  //       } catch (error) {
+  //         if (error.name !== "AbortError") {
+  //           console.error(error.message);
+  //           setError(error.message);
+  //         }
+  //       } finally {
+  //         setIsLoading(false);
+  //         // setError("");
+  //       }
+  //     }
 
-      if (query.length < 3) {
-        setMovies([]);
-        setError("");
-        return;
-      }
+  //     if (query.length < 3) {
+  //       setMovies([]);
+  //       setError("");
+  //       return;
+  //     }
 
-      // if one movie is searched - again we search the old one opend needts to close. we here handleCloseMovie() called.
-      handleCloseMovie();
-      fetchMovies();
+  //     // if one movie is searched - again we search the old one opend needts to close. we here handleCloseMovie() called.
+  //     handleCloseMovie();
+  //     fetchMovies();
 
-      return function () {
-        controller.abort();
-      };
-    },
-    [query]
-  );
+  //     return function () {
+  //       controller.abort();
+  //     };
+  //   },
+  //   [query]
+  // );
 
   return (
     <>
@@ -256,6 +262,8 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
   const [movie, setMovie] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [userRating, setUserRating] = useState("");
+
+  const countRef = useRef(0);
 
   const isWatched = watched.map((movie) => movie.imdbID).includes(selectedId);
 
